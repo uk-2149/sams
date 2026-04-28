@@ -1,0 +1,70 @@
+@startuml
+title SAMS - Use Case Diagram (Student Attendance Management System)
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F9FAFB
+  BorderColor #333
+}
+
+actor Admin
+actor Faculty
+actor Student
+
+rectangle "SAMS System" {
+
+  ' ================= ADMIN =================
+  Admin --> (Login)
+
+  Admin --> (Manage University)
+  Admin --> (Create Department)
+  Admin --> (Create Program)
+  Admin --> (Create Batch)
+
+  Admin --> (Manage Faculty)
+  Admin --> (Manage Students)
+
+  Admin --> (Create Class)
+  Admin --> (Assign Faculty to Class)
+  Admin --> (Enroll Students to Class)
+
+  Admin --> (View All Sessions)
+  Admin --> (View Attendance Records)
+  Admin --> (Update Attendance Anytime)
+
+  Admin --> (View Analytics Dashboard)
+
+  ' ================= FACULTY =================
+  Faculty --> (Login)
+
+  Faculty --> (View Assigned Classes)
+  Faculty --> (Start Session)
+  Faculty --> (Complete Session)
+
+  Faculty --> (Mark Attendance)
+  Faculty --> (Update Attendance within 15 Days)
+
+  Faculty --> (View Session History)
+  Faculty --> (View Class Attendance Summary)
+
+  ' ================= STUDENT =================
+  Student --> (Login)
+
+  Student --> (View Enrolled Classes)
+  Student --> (View Attendance Percentage)
+  Student --> (View Attendance Calendar)
+  Student --> (View Session-wise Attendance)
+
+}
+
+' ================= RELATIONSHIPS =================
+
+(Start Session) --> (Complete Session)
+(Complete Session) --> (Mark Attendance)
+
+(Mark Attendance) --> (Update Attendance within 15 Days)
+
+(View Attendance Records) --> (Update Attendance Anytime)
+
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+title SAMS - Session & Attendance Flow
+
+actor Faculty
+actor Admin
+actor Student
+
+participant "Faculty UI" as FUI
+participant "Admin UI" as AUI
+participant "Student UI" as SUI
+
+participant "Sessions API" as SessionAPI
+participant "Attendance API" as AttAPI
+
+participant "SessionService" as SessionService
+participant "AttendanceService" as AttService
+
+database "Sessions" as SessionDB
+database "Attendance" as AttDB
+database "Students" as StudentDB
+
+Faculty -> FUI : Open Class
+FUI -> SessionAPI : GET sessions
+SessionAPI -> SessionService : getSessions()
+SessionService -> SessionDB : fetch
+SessionAPI --> FUI : session list
+
+Faculty -> FUI : Complete Session
+FUI -> SessionAPI : PATCH complete
+SessionAPI -> SessionService : completeSession()
+SessionService -> SessionDB : update
+
+FUI -> AttAPI : GET students
+AttAPI -> AttService : getStudents()
+AttService -> StudentDB : fetch
+AttAPI --> FUI : student list
+
+loop For each student
+  Faculty -> FUI : Mark Present/Absent
+end
+
+Faculty -> FUI : Submit Attendance
+FUI -> AttAPI : POST attendance
+AttAPI -> AttService : markAttendance()
+
+alt New attendance
+  AttService -> AttDB : insert records
+
+else Updating existing
+  alt (Within 15 days)
+    AttService -> AttDB : update records
+
+  else (After 15 days)
+    AttService --> AttAPI : error (edit expired)
+    AttAPI --> FUI : show error
+  end
+end
+
+AttService -> SessionDB : mark completed
+AttService --> AttAPI : success
+AttAPI --> FUI : success
+
+@enduml

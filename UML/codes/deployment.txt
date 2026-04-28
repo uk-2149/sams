@@ -1,0 +1,116 @@
+@startuml
+title SAMS – Deployment Diagram
+
+skinparam nodeFontSize 13
+skinparam nodeFontStyle bold
+skinparam artifactFontSize 11
+skinparam componentFontSize 11
+skinparam databaseFontSize 11
+skinparam linetype ortho
+skinparam shadowing false
+skinparam packageBorderThickness 2
+
+skinparam node {
+  BackgroundColor #E3F2FD
+  BorderColor     #1E88E5
+  BorderThickness 2
+}
+
+skinparam database {
+  BackgroundColor #F3E5FF
+  BorderColor     #8E24AA
+}
+
+skinparam artifact {
+  BackgroundColor #FFFFFF
+  BorderColor     #555555
+}
+
+' ─────────────────────────────────
+' CLIENT
+' ─────────────────────────────────
+node "Client Device\n(Browser / Mobile)" as Client {
+  artifact "Web Browser" as Browser
+}
+
+' ─────────────────────────────────
+' EDGE / CDN (VERCEL)
+' ─────────────────────────────────
+node "Edge Network (Vercel CDN)" as CDN {
+  artifact "Static Assets\n(JS/CSS/Images)" as StaticAssets
+}
+
+' ─────────────────────────────────
+' NEXT.JS APP SERVER
+' ─────────────────────────────────
+node "App Server (Next.js App Router)" as AppServer {
+
+  artifact "Frontend UI\n(Admin / Faculty / Student)" as Frontend
+
+  artifact "API Routes\n(/api/*)" as API
+
+  artifact "Middleware\n(Auth + RBAC)" as Middleware
+
+  component "AuthService" as AuthService
+  component "ClassService" as ClassService
+  component "SessionService" as SessionService
+  component "AttendanceService" as AttendanceService
+  component "AnalyticsService" as AnalyticsService
+}
+
+' ─────────────────────────────────
+' DATABASE
+' ─────────────────────────────────
+node "Database Server" as DBServer {
+  database "PostgreSQL\n(Main DB)" as MainDB
+}
+
+' ─────────────────────────────────
+' OPTIONAL CACHE (FUTURE)
+' ─────────────────────────────────
+node "Cache Layer (Optional)" as Cache {
+  database "Redis (Sessions / Cache)" as Redis
+}
+
+' ─────────────────────────────────
+' EXTERNAL SERVICES (OPTIONAL)
+' ─────────────────────────────────
+node "External Services" as External {
+  artifact "Email Service (SMTP)" as EmailService
+  artifact "Object Storage (S3)" as Storage
+}
+
+' ─────────────────────────────────
+' COMMUNICATION
+' ─────────────────────────────────
+
+Client --> CDN : HTTPS
+CDN --> AppServer : HTTPS
+
+Browser --> Frontend
+
+Frontend --> API
+API --> Middleware
+
+Middleware --> AuthService
+Middleware --> ClassService
+Middleware --> SessionService
+Middleware --> AttendanceService
+
+API --> AuthService
+API --> ClassService
+API --> SessionService
+API --> AttendanceService
+API --> AnalyticsService
+
+AuthService --> MainDB
+ClassService --> MainDB
+SessionService --> MainDB
+AttendanceService --> MainDB
+AnalyticsService --> MainDB
+
+AppServer --> Cache : TCP 
+AppServer --> EmailService : SMTP
+AppServer --> Storage : HTTPS 
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+title SAMS - Session & Attendance Statechart
+
+' ================= SESSION STATES =================
+
+[*] --> SessionCreated : createSession
+
+SessionCreated --> SessionOngoing : startSession
+SessionOngoing --> SessionCompleted : completeSession
+
+' ================= ATTENDANCE STATES =================
+
+SessionCompleted --> AttendanceNotMarked : load students
+
+AttendanceNotMarked --> AttendanceMarked : submitAttendance
+AttendanceMarked --> AttendanceUpdated : updateAttendance\n[within 15 days OR admin]
+
+AttendanceMarked --> AttendanceExpired : edit window expired\n(>15 days, faculty)
+
+' ================= TERMINAL STATES =================
+
+AttendanceUpdated --> [*]
+AttendanceExpired --> [*]
+
+' ================= NOTES =================
+
+note right of SessionCompleted
+After session completion,
+faculty is redirected to
+attendance screen automatically
+end note
+
+note right of AttendanceMarked
+Faculty can update attendance
+only within 15 days.
+Admin can update anytime.
+end note
+
+note right of AttendanceExpired
+Faculty cannot edit anymore.
+Only admin override allowed.
+end note
+
+@enduml

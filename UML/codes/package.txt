@@ -1,0 +1,133 @@
+@startuml
+title SAMS - Package Diagram
+
+' ================= FRONTEND =================
+
+package "Frontend (Next.js)" {
+  [Admin Dashboard]
+  [Faculty Dashboard]
+  [Student Dashboard]
+  [Attendance UI]
+  [Session UI]
+  [Auth UI]
+}
+
+' ================= API LAYER =================
+
+package "API Layer (App Router)" {
+  [Auth API]
+  [University API]
+  [Departments API]
+  [Programs API]
+  [Batches API]
+  [Classes API]
+  [Sessions API]
+  [Attendance API]
+  [Faculty API]
+  [Students API]
+  [Analytics API]
+}
+
+' ================= DOMAIN SERVICES =================
+
+package "Domain Services" {
+  [AuthService]
+  [UniversityService]
+  [DepartmentService]
+  [ProgramService]
+  [ClassService]
+  [SessionService]
+  [AttendanceService]
+  [AnalyticsService]
+}
+
+' ================= DATA MODELS =================
+
+package "Data Models (PostgreSQL / Prisma)" {
+  [University]
+  [User]
+  [Department]
+  [Program]
+  [Batch]
+  [Student]
+  [Teacher]
+  [Class]
+  [Session]
+  [Attendance]
+}
+
+' ================= INFRASTRUCTURE =================
+
+package "Infrastructure" {
+  [JWT Auth]
+  [RBAC]
+  [DB Connection]
+  [Logging]
+}
+
+' ================= FRONTEND → API =================
+
+[Admin Dashboard] --> [Classes API]
+[Admin Dashboard] --> [Departments API]
+[Admin Dashboard] --> [Programs API]
+[Admin Dashboard] --> [Faculty API]
+[Admin Dashboard] --> [Students API]
+[Admin Dashboard] --> [Analytics API]
+
+[Faculty Dashboard] --> [Classes API]
+[Faculty Dashboard] --> [Sessions API]
+[Faculty Dashboard] --> [Attendance API]
+
+[Student Dashboard] --> [Classes API]
+[Student Dashboard] --> [Attendance API]
+
+[Attendance UI] --> [Attendance API]
+[Session UI] --> [Sessions API]
+[Auth UI] --> [Auth API]
+
+' ================= API → SERVICES =================
+
+[Auth API] --> [AuthService]
+[University API] --> [UniversityService]
+[Departments API] --> [DepartmentService]
+[Programs API] --> [ProgramService]
+[Classes API] --> [ClassService]
+[Sessions API] --> [SessionService]
+[Attendance API] --> [AttendanceService]
+[Analytics API] --> [AnalyticsService]
+
+' ================= SERVICES → MODELS =================
+
+[AuthService] --> [User]
+[UniversityService] --> [University]
+[DepartmentService] --> [Department]
+[ProgramService] --> [Program]
+
+[ClassService] --> [Class]
+[ClassService] --> [Student]
+[ClassService] --> [Teacher]
+
+[SessionService] --> [Session]
+[SessionService] --> [Class]
+
+[AttendanceService] --> [Attendance]
+[AttendanceService] --> [Session]
+[AttendanceService] --> [Student]
+
+[AnalyticsService] --> [Attendance]
+[AnalyticsService] --> [Session]
+[AnalyticsService] --> [Student]
+
+' ================= SERVICES → INFRA =================
+
+[AuthService] --> [JWT Auth]
+[AuthService] --> [RBAC]
+
+[AttendanceService] --> [RBAC]
+[SessionService] --> [RBAC]
+
+[AnalyticsService] --> [DB Connection]
+[ClassService] --> [DB Connection]
+[SessionService] --> [DB Connection]
+
+@enduml

@@ -1,0 +1,98 @@
+@startuml
+title SAMS - Component Diagram (Student Attendance Management System)
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+
+' ================= CLIENT =================
+package "Client Layer" {
+  [Frontend UI\n(Admin / Faculty / Student)] as UI
+}
+
+' ================= API LAYER =================
+package "API Layer (Next.js App Router)" {
+
+  [Auth API\n(/api/auth)] as AuthAPI
+  [Department API\n(/api/departments)] as DeptAPI
+  [Program API\n(/api/programs)] as ProgramAPI
+  [Faculty API\n(/api/faculty)] as FacultyAPI
+  [Student API\n(/api/students)] as StudentAPI
+  [Class API\n(/api/classes)] as ClassAPI
+  [Session API\n(/api/sessions)] as SessionAPI
+  [Attendance API\n(/api/attendance)] as AttendanceAPI
+  [Analytics API\n(/api/analytics)] as AnalyticsAPI
+
+}
+
+' ================= SERVICE LAYER =================
+package "Service Layer" {
+
+  [AuthService] as AuthService
+  [UniversityService] as UnivService
+  [DepartmentService] as DeptService
+  [ProgramService] as ProgramService
+  [UserService] as UserService
+  [ClassService] as ClassService
+  [SessionService] as SessionService
+  [AttendanceService] as AttendanceService
+  [AnalyticsService] as AnalyticsService
+
+}
+
+' ================= DATA LAYER =================
+package "Data Layer (Prisma + PostgreSQL)" {
+
+  [University] as University
+  [Department] as Department
+  [Program] as Program
+  [Faculty] as Faculty
+  [Student] as Student
+  [Class] as Class
+  [Session] as Session
+  [Attendance] as Attendance
+
+}
+
+' ================= RELATIONSHIPS =================
+
+' UI to APIs
+UI --> AuthAPI
+UI --> DeptAPI
+UI --> ProgramAPI
+UI --> FacultyAPI
+UI --> StudentAPI
+UI --> ClassAPI
+UI --> SessionAPI
+UI --> AttendanceAPI
+UI --> AnalyticsAPI
+
+' APIs to Services
+AuthAPI --> AuthService
+DeptAPI --> DeptService
+ProgramAPI --> ProgramService
+FacultyAPI --> UserService
+StudentAPI --> UserService
+ClassAPI --> ClassService
+SessionAPI --> SessionService
+AttendanceAPI --> AttendanceService
+AnalyticsAPI --> AnalyticsService
+
+' Services to Data
+AuthService --> University
+DeptService --> Department
+ProgramService --> Program
+UserService --> Faculty
+UserService --> Student
+ClassService --> Class
+SessionService --> Session
+AttendanceService --> Attendance
+
+' Cross dependencies
+SessionService --> Class
+AttendanceService --> Session
+AttendanceService --> Student
+AnalyticsService --> Attendance
+AnalyticsService --> Class
+
+@enduml

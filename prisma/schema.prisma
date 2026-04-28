@@ -1,0 +1,300 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ======================
+// Core Models
+// ======================
+
+model University {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String   @db.VarChar(255)
+  email       String   @unique
+  userId      String   @unique
+  password    String
+
+  address     String?
+  website     String?
+  logoUrl     String?
+  isVerified  Boolean  @default(false)
+
+  // Relations
+  departments Department[]
+  users       User[]
+  classes     Class[]                 
+
+  @@map("universities")
+}
+
+model Department {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  name          String      @db.VarChar(150)
+  code          String?     @db.VarChar(20)
+
+  universityId  String
+  university    University  @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  programs      Program[]
+  teachers      Teacher[]             
+
+  @@unique([universityId, name])
+  @@map("departments")
+}
+
+model Program {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  name          String      @db.VarChar(100)
+  durationYears Int?
+
+  departmentId  String
+  department    Department  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  batches       Batch[]
+
+  @@unique([departmentId, name])
+  @@map("programs")
+}
+
+model Batch {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  year        String    @db.VarChar(20)
+  startYear   Int
+  endYear     Int?
+
+  programId   String
+  program     Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  students    Student[]
+
+  @@unique([programId, year])
+  @@map("batches")
+}
+
+// ======================
+// Users & Roles
+// ======================
+
+model User {
+  id            String     @id @default(cuid())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  email         String     @unique
+  password      String
+  name          String
+  role          Role       @default(FACULTY)
+
+  universityId  String
+  university    University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  phone         String?
+  avatarUrl     String?
+  isActive      Boolean    @default(true)
+
+  teacherProfile   Teacher?      @relation("TeacherProfile")
+  studentProfile   Student?      @relation("StudentProfile")
+
+  // Back relations for Attendance
+  attendancesMarked   Attendance[]   @relation("MarkedBy")    
+  attendancesModified Attendance[]   @relation("ModifiedBy")  
+
+  @@map("users")
+}
+
+enum Role {
+  UNIVERSITY_ADMIN
+  FACULTY
+  STUDENT
+}
+
+// ======================
+// Profiles
+// ======================
+
+model Teacher {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation("TeacherProfile", fields: [userId], references: [id], onDelete: Cascade)
+
+  employeeId   String?  @unique
+  designation  String?
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])  
+
+  classes      ClassTeacher[]
+
+  sessions     Session[]     
+
+  @@map("teachers")
+}
+
+model Student {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation("StudentProfile", fields: [userId], references: [id], onDelete: Cascade)
+
+  rollNumber      String   @unique
+  batchId         String
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  enrollmentYear  Int
+  currentSemester Int?
+
+  attendances     Attendance[]     
+  classEnrollments ClassStudent[] 
+
+  @@map("students")
+}
+
+// ======================
+// Class Management
+// ======================
+
+model Class {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  name          String
+  code          String?
+  semester      Int?
+  section       String?
+
+  universityId  String
+  university    University @relation(fields: [universityId], references: [id], onDelete: Cascade)   // ← Now has opposite
+
+  teachers      ClassTeacher[]
+  students      ClassStudent[]
+  sessions      Session[]
+
+  @@unique([universityId, code, section])
+  @@map("classes")
+}
+
+model ClassTeacher {
+  id         String   @id @default(cuid())
+  classId    String
+  teacherId  String
+  isPrimary  Boolean  @default(false)
+
+  class      Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, teacherId])
+  @@map("class_teachers")
+}
+
+model ClassStudent {
+  id        String   @id @default(cuid())
+  classId   String
+  studentId String
+
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)  
+
+  joinedAt  DateTime @default(now())
+
+  @@unique([classId, studentId])
+  @@map("class_students")
+}
+
+// ======================
+// Attendance
+// ======================
+
+model Session {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [id])  
+
+  date        DateTime
+  startTime   DateTime?
+  endTime     DateTime?
+  topic       String?
+  isCompleted Boolean  @default(false)
+
+  attendances Attendance[]
+
+  @@map("sessions")
+}
+
+model Attendance {
+  id            String            @id @default(cuid())
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  sessionId     String
+  session       Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId     String
+  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  status        AttendanceStatus
+
+  markedById    String
+  markedBy      User              @relation("MarkedBy", fields: [markedById], references: [id])   
+
+  modifiedById  String?
+  modifiedBy    User?             @relation("ModifiedBy", fields: [modifiedById], references: [id]) 
+
+  modifiedAt    DateTime?
+  notes         String?           @db.Text
+
+  @@unique([sessionId, studentId])
+  @@map("attendances")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+// ======================
+// Audit Logs
+// ======================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  userId      String
+  action      String
+  entityType  String
+  entityId    String
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+
+  @@map("audit_logs")
+}

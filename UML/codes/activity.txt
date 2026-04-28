@@ -1,0 +1,78 @@
+@startuml
+title SAMS - Complete Role-Based Activity Diagram
+
+start
+
+:User logs in;
+
+if (Role?) then (Admin)
+
+  :Admin Dashboard;
+  :Manage Departments/Programs/Batches;
+  :Create Class;
+  :Assign Faculty;
+  :Enroll Students;
+
+  :View Class Details;
+  :View Sessions;
+
+  if (Attendance exists?) then (yes)
+    :Edit Attendance (Admin anytime);
+  else (no)
+    :Wait for Faculty;
+  endif
+
+  :View Analytics;
+
+elseif (Faculty)
+
+  :Faculty Dashboard;
+  :View Assigned Classes;
+
+  if (Session exists?) then (yes)
+    :Select Session;
+  else (no)
+    :Start Session;
+  endif
+
+  :Complete Session;
+  :Go to Attendance Screen;
+
+  repeat
+    :Mark Student;
+    if (Swipe Mode?) then (yes)
+      :Swipe (Present/Absent/Skip);
+    else (no)
+      :Click cycle (P/A/Reset);
+    endif
+  repeat while (More students?) is (yes)
+
+  if (Updating attendance?) then (yes)
+    if (Within 15 days?) then (yes)
+      :Allow update;
+    else (no)
+      :Reject update;
+    endif
+  endif
+
+  :Save Attendance;
+  :Session Completed;
+
+elseif (Student)
+
+  :Student Dashboard;
+  :View Classes;
+  :View Attendance %;
+  :Open Calendar;
+
+  if (Low attendance?) then (yes)
+    :Show Warning;
+  endif
+
+  :View Notifications;
+
+endif
+
+stop
+
+@enduml
